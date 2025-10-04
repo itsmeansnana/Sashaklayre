@@ -16,7 +16,10 @@ dotenv.config();
 
 // --- basic
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.set("trust proxy", 1);           // di belakang proxy (Railway/Cloudflare)
+app.disable("x-powered-by");         // header Express jangan bocor
+
+const PORT = Number(process.env.PORT) || 3000;
 const BASE_URL = (process.env.BASE_URL || "").replace(/\/+$/, "");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
 
@@ -24,40 +27,42 @@ const ADMIN_KEY = process.env.ADMIN_KEY || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || ""; // gunakan Service Role di Railway
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "videos";
+
+for (const [k, v] of Object.entries({
+  SUPABASE_URL: !!SUPABASE_URL,
+  SUPABASE_KEY: !!SUPABASE_KEY,
+  SUPABASE_BUCKET: !!SUPABASE_BUCKET,
+})) {
+  if (!v) console.error("❌ Missing ENV:", k);
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- __dirname untuk ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// server.js / app.js
-app.set('trust proxy', 1);           // karena di belakang proxy (Railway/Cloudflare)
-app.disable('x-powered-by');         // biar header Express gak bocor
 
-const ALLOWED = new Set([
-  'shortmovies.xyz',
-  'www.shortmovies.xyz',
-  'localhost',        // biar dev lokal aman
-  '127.0.0.1'
-]);
+// ===== Whitelist host (opsional, TANPA redirect) =====
+// Set ENV ALLOWED_HOSTS, contoh: "localhost,127.0.0.1,*.up.railway.app"
+// Kalau ALLOWED_HOSTS kosong → whitelist DIMATIKAN (jalan di domain mana pun)
+const RAW_HOSTS = (process.env.ALLOWED_HOSTS || "").trim();
+if (RAW_HOSTS) {
+  const ALLOW = RAW_HOSTS.split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 
-app.use((req, res, next) => {
-  // pakai host dari proxy kalau ada
-  const host =
-    (req.headers['x-forwarded-host'] || req.headers.host || '')
-      .split(':')[0]
+  const allowHost = (host) =>
+    ALLOW.some((p) => (p.startsWith("*.") ? host.endsWith(p.slice(1)) : host === p));
+
+  app.use((req, res, next) => {
+    const host = (req.headers["x-forwarded-host"] || req.headers.host || "")
+      .split(":")[0]
       .toLowerCase();
+    if (allowHost(host)) return next();
+    return res.status(403).send("Forbidden host"); // tolak, BUKAN redirect
+  });
+}
 
-  if (ALLOWED.has(host)) return next();
-
-  // PILIH SALAH SATU: (A) 403 blok, atau (B) redirect ke domain kamu
-
-  // (A) Blok total:
-  // return res.status(403).send('Forbidden');
-
-  // (B) Redirect ke domain kamu (SEO lebih rapi):
-  const target = `https://shortmovies.xyz${req.originalUrl || '/'}`;
-  return res.redirect(301, target);
-});
 // --- views + static
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -73,6 +78,19 @@ app.use((req, res, next) => {
   res.locals.site.baseUrl = BASE_URL || `${req.protocol}://${req.get("host")}`;
   next();
 });
+
+// --- ensure bucket exists (biar first-run smooth)
+(async () => {
+  try {
+    const { data } = await supabase.storage.getBucket(SUPABASE_BUCKET);
+    if (!data) {
+      await supabase.storage.createBucket(SUPABASE_BUCKET, { public: true });
+      console.log("ℹ️ Created bucket:", SUPABASE_BUCKET);
+    }
+  } catch (e) {
+    console.warn("Bucket check error:", e?.message || e);
+  }
+})();
 
 // --- upload (ke /tmp)
 const storage = multer.diskStorage({
@@ -97,12 +115,14 @@ async function readVideos() {
     .from("videos")
     .select("*")
     .order("createdAt", { ascending: false });
+
   if (!error && data) return data;
 
   ({ data, error } = await supabase
     .from("videos")
     .select("*")
     .order("id", { ascending: false }));
+
   if (error) {
     console.error("readVideos error:", error);
     return [];
@@ -146,6 +166,19 @@ function checkAdmin(req, res, next) {
   if (ADMIN_KEY && key === ADMIN_KEY) return next();
   return res.status(403).send("Forbidden: Admin key required");
 }
+
+// ===== Health =====
+app.get("/__healthz", (req, res) => {
+  res.json({
+    ok: true,
+    node: process.version,
+    env: {
+      SUPABASE_URL: !!SUPABASE_URL,
+      SUPABASE_KEY: !!SUPABASE_KEY,
+      SUPABASE_BUCKET,
+    },
+  });
+});
 
 // ===== Routes =====
 
@@ -215,12 +248,12 @@ app.post("/admin/upload", checkAdmin, upload.single("video"), async (req, res) =
     if (!title || !req.file) throw new Error("Judul & file wajib.");
 
     // slug unik
-    let slug = slugify(title, { lower: true, strict: true });
+    let base = slugify(title, { lower: true, strict: true }) || "video";
+    let slug = base;
     let exists = await getVideoBySlug(slug);
     let i = 2;
-    const baseSlug = slug;
     while (exists) {
-      slug = `${baseSlug}-${i++}`;
+      slug = `${base}-${i++}`;
       exists = await getVideoBySlug(slug);
     }
 
@@ -249,6 +282,7 @@ app.post("/admin/upload", checkAdmin, upload.single("video"), async (req, res) =
       file_path: filePath,
       url: publicUrl,
       fullUrl: (fullUrl || "").trim(),
+      // createdAt otomatis di database (kalau ada default now())
     });
 
     fs.remove(req.file.path).catch(() => {});
@@ -274,20 +308,17 @@ app.post("/admin/delete/:slug", checkAdmin, async (req, res) => {
     res.status(400).send("Gagal hapus");
   }
 });
-// === Monetag verification: serve /sw.js from project root ===
-// kalau file lo di ROOT repo (video-portal-ads-main/sw.js)
+
+// Monetag verification: serve /sw.js dari root project
 app.get("/sw.js", (req, res) => {
   res.type("application/javascript");
   res.set("Cache-Control", "no-cache");
   res.sendFile(path.join(__dirname, "sw.js"));
 });
 
-// (opsional) kalau kamu TARUH-nya di /public/sw.js, pakai yang ini saja:
-// app.get("/sw.js", (req, res) => {
-//   res.type("application/javascript");
-//   res.set("Cache-Control", "no-cache");
-//   res.sendFile(path.join(__dirname, "public", "sw.js"));
-// });
-app.listen(PORT, () => {
+// 404 fallback (optional)
+app.use((req, res) => res.status(404).send("Not found"));
+
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
 });
