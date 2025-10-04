@@ -1,4 +1,4 @@
-// server.js (ESM, tanpa helmet)
+// server.js (ESM, sesuai skema: fullUrl & createdAt, tanpa redirect shortmovies)
 import express from "express";
 import path from "path";
 import fs from "fs-extra";
@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
+// --- basic
 const app = express();
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
@@ -21,6 +22,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const BASE_URL = (process.env.BASE_URL || "").replace(/\/+$/, "");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
 
+// --- supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_KEY = process.env.SUPABASE_KEY || ""; // service_role di Railway
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "videos";
@@ -30,25 +32,23 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ==== OPTIONAL whitelist host via ENV (tanpa redirect) ====
+// ===== (Opsional) whitelist host VIA ENV, TANPA redirect =====
 // contoh: ALLOWED_HOSTS="localhost,127.0.0.1,*.up.railway.app"
+// kalau kosong -> whitelist dimatikan (jalan di domain mana pun)
 const RAW_HOSTS = (process.env.ALLOWED_HOSTS || "").trim();
 if (RAW_HOSTS) {
-  const ALLOW = RAW_HOSTS.split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
+  const ALLOW = RAW_HOSTS.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
   const allowHost = (host) =>
-    ALLOW.some((p) => (p.startsWith("*.") ? host.endsWith(p.slice(1)) : host === p));
+    ALLOW.some(p => (p.startsWith("*.") ? host.endsWith(p.slice(1)) : host === p));
   app.use((req, res, next) => {
     const host = (req.headers["x-forwarded-host"] || req.headers.host || "")
-      .split(":")[0]
-      .toLowerCase();
+      .split(":")[0].toLowerCase();
     if (allowHost(host)) return next();
     return res.status(403).send("Forbidden host");
   });
 }
 
-// views + static
+// --- views + static
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);
@@ -57,14 +57,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/public", express.static(path.join(__dirname, "public")));
 
-// baseUrl ke views
+// --- baseUrl ke views
 app.use((req, res, next) => {
   res.locals.site = res.locals.site || {};
   res.locals.site.baseUrl = BASE_URL || `${req.protocol}://${req.get("host")}`;
   next();
 });
 
-// health
+// --- health
 app.get("/__healthz", (req, res) => {
   res.json({
     ok: true,
@@ -77,7 +77,7 @@ app.get("/__healthz", (req, res) => {
   });
 });
 
-// upload ke /tmp
+// --- upload (ke /tmp)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, os.tmpdir()),
   filename: (req, file, cb) => {
@@ -94,19 +94,23 @@ const upload = multer({
   },
 });
 
-// ===== Helpers DB =====
+// ===== Helpers DB (pakai camelCase) =====
 async function readVideos() {
-  try {
-    const { data } = await supabase
-      .from("videos")
-      .select("*")
-      .order("created_at", { ascending: false }); // <-- snake_case
-    return data || [];
-  } catch (e) {
-    // fallback kalau kolom created_at belum ada
-    const { data } = await supabase.from("videos").select("*").order("id", { ascending: false });
-    return data || [];
-  }
+  // coba order by createdAt; kalau schema cache protes, fallback ke id
+  const q1 = await supabase
+    .from("videos")
+    .select("*")
+    .order("createdAt", { ascending: false });
+
+  if (!q1.error) return q1.data || [];
+
+  console.warn("readVideos fallback (schema cache?):", q1.error?.message);
+  const q2 = await supabase
+    .from("videos")
+    .select("*")
+    .order("id", { ascending: false });
+
+  return q2.data || [];
 }
 
 async function getVideoBySlug(slug) {
@@ -210,7 +214,7 @@ app.get("/admin", checkAdmin, async (req, res) => {
 // Upload trailer
 app.post("/admin/upload", checkAdmin, upload.single("video"), async (req, res) => {
   try {
-    const { title, description, fullUrl } = req.body; // field form tetap "fullUrl"
+    const { title, description, fullUrl } = req.body; // mengikuti file kamu (camelCase)
     if (!title || !req.file) throw new Error("Judul & file wajib.");
 
     // slug unik
@@ -236,19 +240,19 @@ app.post("/admin/upload", checkAdmin, upload.single("video"), async (req, res) =
       });
     if (upErr) throw upErr;
 
-    // URL publik
+    // URL publik teaser
     const { data: pub } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(filePath);
     const publicUrl = pub.publicUrl;
 
-    // simpan metadata (PAKAI snake_case full_url)
+    // simpan metadata (camelCase)
     await insertVideo({
       slug,
       title: title.trim(),
       description: (description || "").trim(),
       file_path: filePath,
-      url: publicUrl,
-      fullUrl: (fullUrl || "").trim(), // <— ini kuncinya
-      // created_at biarkan default now() di DB
+      url: publicUrl,                 // teaser public URL
+      fullUrl: (fullUrl || "").trim(),// LINK full video (camelCase)
+      createdAt: new Date().toISOString(),
     });
 
     fs.remove(req.file.path).catch(() => {});
@@ -275,7 +279,7 @@ app.post("/admin/delete/:slug", checkAdmin, async (req, res) => {
   }
 });
 
-// sw.js (Monetag)
+// Monetag verification: serve /sw.js dari root project
 app.get("/sw.js", (req, res) => {
   res.type("application/javascript");
   res.set("Cache-Control", "no-cache");
