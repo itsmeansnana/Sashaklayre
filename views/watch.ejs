@@ -10,23 +10,38 @@
   <div class="ad-slot-top" style="border:1px solid #2b356b;border-radius:12px;padding:10px;text-align:center;color:#98a4c5;background:rgba(255,255,255,.03);margin:8px 0 12px">
     <div style="width:300px;height:250px;margin:0 auto">
       <script data-cfasync="false">
-        atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
+        (function(){
+          try {
+            window.atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
+            var s=document.createElement('script'); s.setAttribute('data-cfasync','false');
+            s.src='//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js';
+            document.currentScript.parentElement.appendChild(s);
+          } catch(e) {}
+        })();
       </script>
-      <script data-cfasync="false" src="//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js"></script>
     </div>
   </div>
 
   <!-- PLAYER -->
   <div class="player-shell"
        style="width:100%;max-width:360px;aspect-ratio:16/9;margin:0 auto 12px;border-radius:16px;overflow:hidden;box-shadow:0 0 24px rgba(0,0,0,.35);background:#000;">
-    <video controls playsinline preload="metadata" src="<%= v.url %>" style="width:100%;height:100%;background:#000;display:block;border-radius:16px;"></video>
+    <video
+      controls
+      playsinline
+      preload="metadata"
+      controlsList="nodownload"
+      disablePictureInPicture
+      poster="<%= v.thumb_url || '/public/placeholder-thumb.jpg' %>"
+      src="<%= v.url %>"
+      style="width:100%;height:100%;background:#000;display:block;border-radius:16px;">
+    </video>
   </div>
 
   <% if (v.fullUrl) { %>
     <div class="cta-wrap" style="display:flex;justify-content:center;margin:6px 0 8px">
       <a class="btn btn-primary"
          style="display:inline-flex;gap:8px;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(90deg,#3a8ef6,#6f3afa);color:#fff;font-weight:700"
-         href="<%= v.fullUrl %>" target="_blank" rel="noopener">▶ Tonton FULL</a>
+         href="<%= v.fullUrl %>" target="_blank" rel="noopener noreferrer">▶ Tonton FULL</a>
     </div>
   <% } %>
 
@@ -37,21 +52,21 @@
         <script data-cfasync="false">
           (function(){
             var box = document.getElementById('ad-bottom');
-
             function fallback(){
               box.innerHTML =
-                '<a href="/" target="_blank" rel="noopener">' +
-                '<img src="/public/ads/backup-300x250.jpg" width="300" height="250" style="display:block;border-radius:8px" alt="Ad"/>' +
+                '<a href="/" target="_blank" rel="noopener noreferrer">' +
+                '<img src="/public/ads/backup-300x250.jpg" width="300" height="250" style="display:block;border-radius:8px" decoding="async" loading="lazy" alt="Ad"/>' +
                 '</a>';
             }
-
-            window.atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
-            var s = document.createElement('script');
-            s.setAttribute('data-cfasync','false');
-            s.src = '//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js';
-            s.onload = function(){ setTimeout(function(){ if(!box.querySelector('iframe')) fallback(); }, 1800); };
-            s.onerror = fallback;
-            box.appendChild(s);
+            try {
+              window.atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
+              var s=document.createElement('script');
+              s.setAttribute('data-cfasync','false');
+              s.src='//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js';
+              s.onload=function(){ setTimeout(function(){ if(!box.querySelector('iframe')) fallback(); }, 1800); };
+              s.onerror=fallback;
+              box.appendChild(s);
+            } catch(e){ fallback(); }
           })();
         </script>
       </div>
@@ -62,6 +77,7 @@
   <div class="share-wrap" style="max-width:680px;margin:18px auto 28px;padding:12px;border:1px solid #2b356b;border-radius:12px;background:rgba(255,255,255,.03)">
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <input id="share-url" type="text" readonly
+             value="<%= shareUrl %>"
              style="flex:1 1 260px;min-width:240px;border:1px solid #2b356b;background:#0e1530;color:#c6d0f5;border-radius:10px;padding:10px 12px;font-size:14px" />
       <button id="btn-copy" type="button"
               style="padding:10px 12px;border-radius:10px;border:1px solid #2b356b;background:#1b2a62;color:#fff;font-weight:700">
@@ -76,13 +92,11 @@
 
     <script>
       (function(){
-        var url = window.location.href;
+        var url = document.getElementById('share-url').value || window.location.href;
         var $input = document.getElementById('share-url');
         var $copy  = document.getElementById('btn-copy');
         var $share = document.getElementById('btn-share');
         var $msg   = document.getElementById('share-msg');
-
-        $input.value = url;
 
         function flash(text){
           $msg.textContent = text;
@@ -90,19 +104,18 @@
         }
 
         $copy.addEventListener('click', function(){
-          navigator.clipboard && navigator.clipboard.writeText
-            ? navigator.clipboard.writeText(url).then(function(){ flash('Link disalin.'); })
-            : (function(){
-                $input.select(); document.execCommand('copy'); flash('Link disalin.');
-              })();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function(){ flash('Link disalin.'); });
+          } else {
+            $input.select(); document.execCommand('copy'); flash('Link disalin.');
+          }
         });
 
         $share.addEventListener('click', function(){
           if (navigator.share) {
-            navigator.share({ title: document.title, text: 'Tonton ini di Shortmovies', url: url })
+            navigator.share({ title: document.title, text: 'Tonton ini di <%= site.title %>', url: url })
               .catch(function(){ /* user cancel */ });
           } else {
-            // fallback: copy
             $copy.click();
           }
         });
