@@ -247,7 +247,7 @@ app.post("/admin/upload", checkAdmin, upload.single("video"), async (req, res) =
       description: (description || "").trim(),
       file_path: filePath,
       url: publicUrl,
-      full_url: (fullUrl || "").trim(), // <— ini kuncinya
+      fullUrl: (fullUrl || "").trim(), // <— ini kuncinya
       // created_at biarkan default now() di DB
     });
 
