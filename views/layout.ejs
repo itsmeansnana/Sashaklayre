@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-dns-prefetch-control" content="on" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <% const S = site || {}; const T = S.title || "Short Movies"; const D = S.description || "Nonton full lewat Telegram"; %>
+  <title><%= T %></title>
+  <meta name="description" content="<%= D %>" />
+  <% if (S.canonical) { %><link rel="canonical" href="<%= S.canonical %>" /><% } %>
+
+  <!-- Preconnect -->
+  <link rel="dns-prefetch" href="//www.highperformanceformat.com">
+  <link rel="preconnect" href="https://www.highperformanceformat.com" crossorigin>
+  <link rel="dns-prefetch" href="//pl27528539.effectivecpmrate.com">
+  <link rel="preconnect" href="https://pl27528539.effectivecpmrate.com" crossorigin>
+  <link rel="dns-prefetch" href="//pl27528520.effectivecpmrate.com">
+  <link rel="preconnect" href="https://pl27528520.effectivecpmrate.com" crossorigin>
+  <link rel="dns-prefetch" href="//vemtoutcheeg.com">
+  <link rel="preconnect" href="https://vemtoutcheeg.com" crossorigin>
+  <link rel="dns-prefetch" href="//libtl.com">
+  <link rel="preconnect" href="https://libtl.com" crossorigin>
+
+  <link rel="stylesheet" href="/public/styles.css?v=16" />
+</head>
+<body class="page-<%= page || 'home' %>">
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="/">🎬 <span>Short Movies</span></a>
+    </div>
+  </header>
+
+  <main class="container">
+    <%- body %>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© <%= new Date().getFullYear() %> Short Movies</div>
+  </footer>
+
+  <% if (!(page || '').startsWith('admin')) { %>
+    <!-- Popunder -->
+    <script data-cfasync="false" src="//pl27528539.effectivecpmrate.com/24/e5/3f/24e53f9b46e63b6c19a43ce8e5afc0d5.js"></script>
+    <!-- Social Bar -->
+    <script data-cfasync="false" src="//pl27528520.effectivecpmrate.com/50/fc/b0/50fcb0851ba2e6f04e98b3058b421693.js"></script>
+  <% } %>
+<% if (process.env.ENABLE_POPUNDER === "true") { %>
+    <!-- AdsTerra Popunder -->
+    <script src="//pl27528539.effectivecpmrate.com/24/e5/3f/24e53f9b46e63b6c19a43ce8e5afc0d5.js"></script>
+  <% } %>
+
+  <% if (process.env.ENABLE_SOCIALBAR === "true") { %>
+    <!-- AdsTerra Social Bar -->
+    <script src="//pl27528520.effectivecpmrate.com/50/fc/b0/50fcb0851ba2e6f04e98b3058b421693.js"></script>
+  <% } %>
+</body>
+</html>

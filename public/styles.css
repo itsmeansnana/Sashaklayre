@@ -1,0 +1,131 @@
+:root{
+  --bg:#0b0f24; --bg2:#0d1230; --card:#121739; --muted:#98a4c5; --text:#e9eeff;
+  --border:#2b356b; --grad1:#3a8ef6; --grad2:#6f3afa; --accent:#18e0c4; --danger:#ff5b6b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:radial-gradient(1200px 600px at 20% -10%,#151a41 0%,transparent 60%),var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Inter,Arial}
+a{color:inherit;text-decoration:none}
+.container{max-width:980px;margin:0 auto;padding:20px}
+
+/* HEADER & FOOTER */
+.site-header{position:sticky;top:0;background:linear-gradient(180deg,rgba(10,12,27,.9),rgba(10,12,27,.6));backdrop-filter:blur(8px);z-index:10;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand{font-weight:800;font-size:20px;display:inline-flex;gap:8px;align-items:center}
+.site-footer{opacity:.7;border-top:1px solid rgba(255,255,255,.06);margin-top:32px}
+
+/* TITLES */
+.title{font-size:28px;letter-spacing:.4px;margin:0 0 10px;font-weight:800}
+.subtitle{color:var(--muted);margin:0 0 24px}
+.hero{margin:8px 0 14px}
+
+/* GRID KOTAK (HOME/PUBLIC) */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.video-grid--sm{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.video-card{display:flex;flex-direction:column;background:linear-gradient(180deg,#13183a,#0e1433);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 10px 22px rgba(0,0,0,.25);transition:.2s transform}
+.video-card:hover{transform:translateY(-2px)}
+.video-card--sm{border-radius:14px}
+.thumb{aspect-ratio:16/9;background:#0b0f24;display:flex;align-items:center;justify-content:center}
+.thumb video{width:100%;height:100%;object-fit:cover;opacity:.95;border-bottom:1px solid rgba(255,255,255,.06)}
+.meta{padding:14px 14px 16px}
+.video-card--sm .meta{padding:10px 10px 12px}
+.meta h3{margin:4px 0 6px;font-size:18px}
+.title-sm{font-size:15px;margin:2px 0 4px}
+.meta p{margin:0;color:var(--muted);font-size:14px}
+.empty{padding:24px;border:1px dashed var(--border);border-radius:14px;color:var(--muted);text-align:center;background:rgba(255,255,255,.02)}
+
+/* PLAYER CARD (ADMIN/WATCH) */
+.player-card{background:linear-gradient(180deg,#13183a,#0e1433);border:1px solid var(--border);border-radius:22px;padding:12px}
+.glow{box-shadow:0 14px 40px rgba(60,100,255,.18),inset 0 0 0 1px rgba(255,255,255,.02)}
+.player{border-radius:16px;overflow:hidden;margin:10px 0 14px}
+.player video{width:100%;height:auto;display:block;background:#000}
+
+/* BUTTONS & FORMS */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-weight:700}
+.btn-primary{background:linear-gradient(90deg,var(--grad1),var(--grad2));border:none;color:#fff}
+.btn-outline{background:transparent;border-color:var(--border);color:#e6ebff}
+.btn-ghost{background:rgba(255,255,255,.06)}
+.btn-danger{background:#2a0f16;border-color:#862d3a;color:#ffb8c0}
+.muted{color:var(--muted)}
+.row-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:0 14px 14px}
+.form.grid{display:grid;gap:12px}
+.input{width:100%;padding:10px 12px;background:#0f1530;border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px}
+.file-input{display:none} /* pakai label tombol custom */
+
+/* SEMBUNYIKAN ELEMEN UPLOAD DI HALAMAN PUBLIK */
+.page-home input[type="file"],
+.page-home .file-input,
+.page-home form[action*="/admin"],
+.page-home label[for="video"],
+.page-home .btn.btn-primary[type="submit"],
+.page-home .form { display:none !important; }
+
+/* ===== WATCH PAGE (RAMPING SESUAI SCREENSHOT) ===== */
+.back-link{display:inline-block;margin:6px 0 4px;color:var(--muted);font-size:14px}
+.watch-title{display:flex;align-items:center;gap:8px;margin:6px 0 10px}
+.watch-title .t{font-size:36px;font-weight:800;letter-spacing:.3px}
+.badge-trailer{font-size:13px;font-weight:800;letter-spacing:.6px;padding:6px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(98,120,255,.12)}
+.ad-slot-top{border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;color:var(--muted);background:rgba(255,255,255,.03);margin:8px 0 12px}
+
+/* >>> ini kunci biar player tidak segede gaban <<< */
+.watch-wrap{
+  width:100%;
+  max-width:400px;    /* atur ke 360–420 sesuai selera; 400px pas seperti foto */
+  margin:0 auto 12px;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 0 24px rgba(0,0,0,.35);
+}
+.watch-wrap video{width:100%;height:auto;display:block;background:#000;border-radius:16px}
+
+.cta-wrap{display:flex;justify-content:center;margin:6px 0 8px}
+
+/* share (opsional admin=1) */
+.share-card{max-width:400px;margin:10px auto 0;border:1px solid var(--border);border-radius:14px;padding:12px;background:rgba(255,255,255,.03)}
+.share-row{display:flex;gap:8px;align-items:center}
+.share-input{flex:1;padding:10px 12px;background:#0f1530;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px}
+.share-actions{margin-top:8px;display:flex;gap:8px}
+
+/* banner bawah */
+.ad-banner{max-width:680px;margin:16px auto 0;display:flex;flex-direction:column;gap:14px}
+.ad-box{border:1px dashed var(--border);border-radius:12px;padding:16px;text-align:center;color:var(--muted);background:rgba(255,255,255,.03)}
+@media (min-width:720px){
+  .watch-wrap{max-width:420px;} /* sedikit lebih lebar di tablet */
+}
+/* ===== HOME LIST KECIL (sama nuansa dengan watch) ===== */
+.video-list-narrow{
+  display:flex; flex-direction:column; align-items:center;
+  gap:14px; margin-top:6px;
+}
+.video-item{
+  width:100%; max-width:360px;    /* ukuran kecil seperti watch */
+  background:linear-gradient(180deg,#13183a,#0e1433);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 12px 28px rgba(0,0,0,.28);
+  transition:transform .15s ease;
+}
+.video-item:hover{ transform: translateY(-2px); }
+
+.thumb-small{
+  width:100%;
+  aspect-ratio:16/9;             /* kunci tinggi, tidak memanjang */
+  background:#000;
+  overflow:hidden;
+}
+.thumb-small video{
+  width:100%; height:100%;
+  object-fit:contain;            /* letterbox kalau video portrait */
+  display:block; background:#000;
+}
+
+.item-meta{ padding:12px 12px 14px; }
+.item-title{ margin:0 0 4px; font-size:16px; font-weight:800; }
+.item-desc{ margin:0; color:var(--muted); font-size:13.5px; }
+
+/* opsional: biar di layar lebar tetap kecil, bisa 2 kolom rapi */
+@media (min-width:900px){
+  .video-list-narrow{
+    display:grid; grid-template-columns: repeat(2, 1fr);
+    justify-items:center;
+  }
+}

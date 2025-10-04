@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+  <style>
+    html,body{margin:0;padding:0;width:300px;height:250px;overflow:hidden;background:transparent}
+    #slot{width:300px;height:250px}
+  </style>
+</head>
+<body>
+  <div id="slot"></div>
+
+  <!-- 1) coba non-adblock in-place -->
+  <script data-cfasync="false" async src="https://vemtoutcheeg.com/tag.min.js" data-zone="9792602"></script>
+
+  <script>
+    // 2) fallback ke SDK bila 1 tidak menampilkan creative
+    function hasCreative(){
+      return document.querySelector('iframe,ins,div[data-zone-loaded]');
+    }
+    setTimeout(function(){
+      if (!hasCreative()){
+        var s=document.createElement('script');
+        s.async=true;
+        s.src='//libtl.com/sdk.js';
+        s.setAttribute('data-zone','9792602');
+        s.setAttribute('data-sdk','show_9792602');
+        document.getElementById('slot').appendChild(s);
+      }
+    }, 2000);
+  </script>
+
+  <noscript>
+    <a href="/" target="_blank" rel="noopener">
+      <img src="/public/ads/backup-300x250.jpg" width="300" height="250" alt="">
+    </a>
+  </noscript>
+</body>
+</html>
