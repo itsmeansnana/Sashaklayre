@@ -6,19 +6,21 @@
     <span class="badge-trailer" style="font-size:13px;font-weight:900;letter-spacing:.6px;padding:6px 10px;border-radius:12px;border:1px solid #2b356b;background:rgba(98,120,255,.12)">TRAILER</span>
   </h1>
 
-  <!-- === Adsterra 300x250 (ATAS PLAYER) === -->
+  <!-- === ADS 300x250 (ATAS PLAYER) === -->
   <div class="ad-slot-top" style="border:1px solid #2b356b;border-radius:12px;padding:10px;text-align:center;color:#98a4c5;background:rgba(255,255,255,.03);margin:8px 0 12px">
     <div style="width:300px;height:250px;margin:0 auto">
-      <script data-cfasync="false">
-        (function(){
-          try {
-            window.atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
-            var s=document.createElement('script'); s.setAttribute('data-cfasync','false');
-            s.src='//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js';
-            document.currentScript.parentElement.appendChild(s);
-          } catch(e) {}
-        })();
+      <script type="text/javascript">
+        atOptions = {
+          'key' : '831612669ba4d3f31de52735c46c39ee',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
       </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/831612669ba4d3f31de52735c46c39ee/invoke.js"></script>
+      <script type="text/javascript" src="//pl27783519.revenuecpmgate.com/fe/dc/72/fedc72b1ab53e76af36dadde9e58fdd4.js"></script>
+      <script type="text/javascript" src="//pl27783551.revenuecpmgate.com/d6/d7/69/d6d7691b699381fedc7f28855c9aa3cf.js"></script>
     </div>
   </div>
 
@@ -45,30 +47,22 @@
     </div>
   <% } %>
 
-  <!-- === Adsterra 300x250 (BAWAH PLAYER) + fallback === -->
+  <!-- === ADS 300x250 (BAWAH PLAYER) === -->
   <div class="ad-banner" style="max-width:680px;margin:16px auto 0;display:flex;flex-direction:column;gap:14px">
     <div class="ad-box" style="border:1px dashed #2b356b;border-radius:12px;padding:10px;text-align:center;color:#98a4c5;background:rgba(255,255,255,.03)">
-      <div id="ad-bottom" style="width:300px;height:250px;margin:0 auto;position:relative">
-        <script data-cfasync="false">
-          (function(){
-            var box = document.getElementById('ad-bottom');
-            function fallback(){
-              box.innerHTML =
-                '<a href="/" target="_blank" rel="noopener noreferrer">' +
-                '<img src="/public/ads/backup-300x250.jpg" width="300" height="250" style="display:block;border-radius:8px" decoding="async" loading="lazy" alt="Ad"/>' +
-                '</a>';
-            }
-            try {
-              window.atOptions = { key:'c170db92dbe69cba15f5fe00f341cc59', format:'iframe', height:250, width:300, params:{} };
-              var s=document.createElement('script');
-              s.setAttribute('data-cfasync','false');
-              s.src='//www.highperformanceformat.com/c170db92dbe69cba15f5fe00f341cc59/invoke.js';
-              s.onload=function(){ setTimeout(function(){ if(!box.querySelector('iframe')) fallback(); }, 1800); };
-              s.onerror=fallback;
-              box.appendChild(s);
-            } catch(e){ fallback(); }
-          })();
+      <div style="width:300px;height:250px;margin:0 auto">
+        <script type="text/javascript">
+          atOptions = {
+            'key' : '831612669ba4d3f31de52735c46c39ee',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
         </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/831612669ba4d3f31de52735c46c39ee/invoke.js"></script>
+        <script type="text/javascript" src="//pl27783519.revenuecpmgate.com/fe/dc/72/fedc72b1ab53e76af36dadde9e58fdd4.js"></script>
+        <script type="text/javascript" src="//pl27783551.revenuecpmgate.com/d6/d7/69/d6d7691b699381fedc7f28855c9aa3cf.js"></script>
       </div>
     </div>
   </div>
